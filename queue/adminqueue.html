@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการระบบคิว</title>
+    <meta name="description" content="จัดการระบบคิว for LIFF App" />
+    <meta name="author" content="iton5" />
+    <meta property="og:title" content="จัดการระบบคิว-iton5-thailand" />
+    <meta property="og:description" content="จัดการระบบคิว for LIFF App" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://lh3.googleusercontent.com/d/1Ck_OCfEW4dEp3A1k9yfQplYmW7qmwzFF" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://bit.ly/fontiton5" type="text/css" charset="utf-8" />
+    <style>
+        :root {
+            --primary: #fcaa67;
+            --secondary: #b0413e;
+            --background: #ffffc7;
+            --accent1: #548687;
+            --accent2: #473335;
+        }
+
+        body {
+            font-family: 'line_seed_sans_th';
+            background-color: #f0f2f5;
+        }
+
+        .header-gradient {
+            background-image: linear-gradient(120deg, var(--accent2), var(--accent1));
+        }
+
+        .btn-action {
+            background-image: linear-gradient(to right, var(--accent1) 0%, #6ab3a3 51%, var(--accent1) 100%);
+            transition: 0.5s;
+            background-size: 200% auto;
+            color: white;
+        }
+
+        .btn-action:hover {
+            background-position: right center;
+        }
+
+        .btn-action-alt {
+            background-image: linear-gradient(to right, #4a7879 0%, var(--accent1) 51%, #4a7879 100%);
+            transition: 0.5s;
+            background-size: 200% auto;
+            color: white;
+        }
+
+        .btn-action-alt:hover {
+            background-position: right center;
+        }
+
+        .btn-danger {
+            background-image: linear-gradient(to right, var(--secondary) 0%, #d46a67 51%, var(--secondary) 100%);
+            transition: 0.5s;
+            background-size: 200% auto;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-position: right center;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid var(--accent1);
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes card-pop-in {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .card {
+            animation: card-pop-in 0.4s ease-out forwards;
+        }
+
+        .btn-refresh-animation {
+            transition: transform 0.5s ease;
+        }
+
+        .btn-refresh-animation.rotating {
+            transform: rotate(360deg);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-4 rounded-lg flex items-center space-x-3 shadow-lg">
+            <div class="loader"></div>
+            <span>กำลังประมวลผล...</span>
+        </div>
+    </div>
+
+    
+    <div id="custom-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md text-center card">
+            <h3 id="modal-title" class="text-2xl font-bold mb-4"></h3>
+            <p id="modal-message" class="text-gray-600 mb-8"></p>
+            <div id="modal-actions" class="flex justify-center gap-4">
+                <!-- Buttons will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <header class="header-gradient text-white p-6 shadow-lg sticky top-0 z-10">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold">Admin ควบคุมระบบคิว</h1>
+            <button id="refresh-btn" class="p-2 rounded-full hover:bg-white/20 transition-colors">
+
+                <svg id="refresh-icon" class="h-6 w-6 btn-refresh-animation" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17.651 7.65a7.131 7.131 0 0 0-12.68 3.15M18.001 4v4h-4m-7.652 8.35a7.13 7.13 0 0 0 12.68-3.15M6 20v-4h4" />
+                </svg>
+
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+       
+        <div class="card bg-white p-6 rounded-2xl shadow-md mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button id="call-type-a-btn"
+                    class="btn-action w-full text-xl font-bold py-4 rounded-xl shadow-lg transform hover:scale-105 duration-300">
+                    เรียกคิวทั่วไป (A)
+                </button>
+                <button id="call-type-b-btn"
+                    class="btn-action-alt w-full text-xl font-bold py-4 rounded-xl shadow-lg transform hover:scale-105 duration-300">
+                    เรียกคิวพิเศษ (B)
+                </button>
+                <button id="reset-queue-btn"
+                    class="btn-danger w-full text-xl font-bold py-4 rounded-xl shadow-lg transform hover:scale-105 duration-300 md:col-start-3">
+                    รีเซ็ตคิวทั้งหมด
+                </button>
+            </div>
+        </div>
+
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="card bg-white p-6 rounded-2xl shadow-md text-center">
+                <h2 class="text-2xl font-semibold mb-2" style="color: var(--secondary);">กำลังเรียก</h2>
+                <p id="now-calling" class="text-6xl font-black" style="color: var(--secondary);">---</p>
+            </div>
+            <div class="card bg-white p-6 rounded-2xl shadow-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold" style="color: var(--accent1);">กำลังรอ (<span
+                            id="waiting-count">0</span>)</h2>
+                </div>
+                <ul id="waiting-list" class="space-y-2 max-h-96 overflow-y-auto"></ul>
+            </div>
+            <div class="card bg-white p-6 rounded-2xl shadow-md">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-500">สำเร็จ/ยกเลิกแล้ว</h2>
+                <ul id="finished-list" class="space-y-2 max-h-96 overflow-y-auto"></ul>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const apiUrl = 'https://script.google.com/macros/s/AKfycbxlpGzFlrYiIanmD8hosU7R8gosy-DnMgIoxzGCjNXriBs-Eh_qCzEqJ0Arj_vV5qc2xA/exec';
+
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const callTypeABtn = document.getElementById('call-type-a-btn');
+        const callTypeBBtn = document.getElementById('call-type-b-btn');
+        const resetQueueBtn = document.getElementById('reset-queue-btn');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const refreshIcon = document.getElementById('refresh-icon');
+        const nowCallingEl = document.getElementById('now-calling');
+        const waitingCountEl = document.getElementById('waiting-count');
+        const waitingListEl = document.getElementById('waiting-list');
+        const finishedListEl = document.getElementById('finished-list');
+
+        const modal = document.getElementById('custom-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalActions = document.getElementById('modal-actions');
+
+        function showModal(title, message, buttons) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalActions.innerHTML = '';
+            buttons.forEach(btnInfo => {
+                const button = document.createElement('button');
+                button.textContent = btnInfo.text;
+                button.className = btnInfo.classes;
+                button.onclick = () => {
+                    modal.classList.add('hidden');
+                    if (btnInfo.onClick) btnInfo.onClick();
+                };
+                modalActions.appendChild(button);
+            });
+            modal.classList.remove('hidden');
+        }
+
+        function showAlert(title, message) {
+            showModal(title, message, [{ text: 'ตกลง', classes: 'btn-action py-2 px-8 rounded-lg' }]);
+        }
+
+        function showConfirm(title, message, onConfirm) {
+            showModal(title, message, [
+                { text: 'ยืนยัน', classes: 'btn-danger py-2 px-8 rounded-lg', onClick: onConfirm },
+                { text: 'ยกเลิก', classes: 'bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-8 rounded-lg transition-colors' }
+            ]);
+        }
+
+        function showLoading(show) {
+            loadingOverlay.classList.toggle('hidden', !show);
+        }
+
+        async function performAction(action, params = {}) {
+            showLoading(true);
+            try {
+                const formData = new URLSearchParams();
+                formData.append('action', action);
+                for (const key in params) {
+                    formData.append(key, params[key]);
+                }
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData, mode: 'cors'
+                });
+                if (!response.ok) throw new Error('Network response was not ok');
+                const result = await response.json();
+                if (!result.success) {
+                    
+                    if (result.message.includes('No more queues')) {
+                        showAlert('ไม่พบคิว', `ไม่มีคิวประเภท '${params.serviceType}' ที่รอเรียก`);
+                    } else {
+                        throw new Error(result.message);
+                    }
+                }
+                await fetchQueueData();
+                return result;
+            } catch (error) {
+                console.error(`Error performing action ${action}:`, error);
+                showAlert('เกิดข้อผิดพลาด', error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function fetchQueueData() {
+            showLoading(true);
+            refreshIcon.classList.add('rotating');
+            try {
+                const response = await fetch(apiUrl, { mode: 'cors' });
+                if (!response.ok) throw new Error('Network response failed');
+                const result = await response.json();
+                if (result.success) {
+                    updateAdminUI(result.data);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                showAlert('การเชื่อมต่อล้มเหลว', 'ไม่สามารถดึงข้อมูลคิวล่าสุดได้ กรุณาตรวจสอบการเชื่อมต่อและลองอีกครั้ง');
+            } finally {
+                showLoading(false);
+                setTimeout(() => refreshIcon.classList.remove('rotating'), 500);
+            }
+        }
+
+        function updateAdminUI(data) {
+            nowCallingEl.textContent = data.nowCalling ? data.nowCalling.QueueNumber : '---';
+            waitingCountEl.textContent = data.waitingList.length;
+
+            waitingListEl.innerHTML = '';
+            if (data.waitingList && data.waitingList.length > 0) {
+                data.waitingList.forEach(q => {
+                    const li = document.createElement('li');
+                    li.className = 'bg-blue-50 border border-blue-200 text-blue-800 p-3 rounded-lg flex justify-between items-center';
+                    li.innerHTML = `<span class="font-semibold text-lg">${q.QueueNumber}</span> <span class="text-sm text-gray-500">${new Date(q.Timestamp).toLocaleTimeString('th-TH')} น.</span>`;
+                    waitingListEl.appendChild(li);
+                });
+            } else {
+                waitingListEl.innerHTML = '<p class="text-gray-500 text-center p-4">ไม่มีคิวที่รอ</p>';
+            }
+
+            finishedListEl.innerHTML = '';
+            if (data.finishedList && data.finishedList.length > 0) {
+                data.finishedList.reverse().forEach(q => {
+                    const li = document.createElement('li');
+                    li.className = 'bg-gray-100 border text-gray-500 p-3 rounded-lg flex justify-between items-center opacity-70';
+                    let statusClass = q.Status === 'SKIPPED' || q.Status === 'CANCELLED' ? 'text-red-500' : 'text-green-600';
+                    li.innerHTML = `<span class="font-semibold text-lg">${q.QueueNumber}</span><span class="text-sm font-bold ${statusClass}">${q.Status}</span>`;
+                    finishedListEl.appendChild(li);
+                });
+            } else {
+                finishedListEl.innerHTML = '<p class="text-gray-400 text-center p-4">ยังไม่มีคิวที่เสร็จสิ้น</p>';
+            }
+        }
+
+        callTypeABtn.addEventListener('click', () => performAction('call_next', { serviceType: 'A' }));
+        callTypeBBtn.addEventListener('click', () => performAction('call_next', { serviceType: 'B' }));
+
+        resetQueueBtn.addEventListener('click', () => {
+            showConfirm(
+                'ยืนยันการรีเซ็ตคิว',
+                'คุณแน่ใจหรือไม่ว่าต้องการล้างข้อมูลคิวทั้งหมด? การกระทำนี้ไม่สามารถย้อนกลับได้',
+                () => performAction('reset_queue')
+            );
+        });
+
+        refreshBtn.addEventListener('click', fetchQueueData);
+
+        document.addEventListener('DOMContentLoaded', fetchQueueData);
+    </script>
+</body>
+
+</html>

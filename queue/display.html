@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จอแสดงผลคิว</title>
+    <meta name="description" content="จอแสดงผลคิว for LIFF App" />
+    <meta name="author" content="iton5" />
+    <meta property="og:title" content="จอแสดงผลคิว-iton5-thailand" />
+    <meta property="og:description" content="จอแสดงผลคิว for LIFF App" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://lh3.googleusercontent.com/d/1Ck_OCfEW4dEp3A1k9yfQplYmW7qmwzFF" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://bit.ly/fontiton5" type="text/css" charset="utf-8" />
+    <style>
+        :root {
+            --primary: #fcaa67;
+            --secondary: #b0413e;
+            --background: #ffffc7;
+            --accent1: #548687;
+            --accent2: #473335;
+        }
+
+        body {
+            font-family: 'line_seed_sans_th';
+            background-color: var(--accent2);
+            color: var(--background);
+        }
+
+        .gradient-text {
+            background: linear-gradient(45deg, var(--primary), var(--background));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(252, 170, 103, 0.7);
+            }
+
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 0 20px 20px rgba(252, 170, 103, 0);
+            }
+        }
+
+        .pulse-animation {
+            animation: pulse 2.5s infinite;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in-up {
+            animation: slideInUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+
+        .waiting-queue-item {
+            background-color: var(--accent1);
+            color: var(--background);
+        }
+    </style>
+</head>
+
+<body class="p-4 md:p-8">
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 h-screen max-h-screen">
+
+       
+        <div
+            class="lg:col-span-2 bg-gradient-to-br from-[#473335] to-[#5a4244] rounded-3xl flex flex-col items-center justify-center p-8 shadow-2xl">
+            <h1 class="text-5xl md:text-7xl font-bold tracking-wider" style="color: var(--accent1);">กำลังเรียกคิว</h1>
+            <div id="now-calling-card" class="my-auto w-full text-center pulse-animation rounded-3xl p-4"
+                style="background-color: var(--background);">
+                <p id="now-calling-number" class="text-8xl md:text-9xl lg:text-[15rem] font-black leading-none"
+                    style="color: var(--secondary);">---</p>
+            </div>
+            <p class="text-2xl text-gray-400">โปรดมาที่ช่องบริการ</p>
+        </div>
+
+       
+        <div class="bg-gray-800 rounded-3xl flex flex-col p-6 shadow-inner overflow-hidden">
+            <h2 class="text-4xl font-bold text-center mb-6 gradient-text">คิวรอถัดไป</h2>
+            <div id="waiting-list" class="flex-grow space-y-4 overflow-y-auto pr-2">
+               
+                <p id="no-waiting-msg" class="text-center text-gray-400 mt-10">ไม่มีคิวที่รออยู่</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const apiUrl = 'https://script.google.com/macros/s/AKfycbxlpGzFlrYiIanmD8hosU7R8gosy-DnMgIoxzGCjNXriBs-Eh_qCzEqJ0Arj_vV5qc2xA/exec';
+        const nowCallingNumber = document.getElementById('now-calling-number');
+        const waitingList = document.getElementById('waiting-list');
+        const nowCallingCard = document.getElementById('now-calling-card');
+        const noWaitingMsg = document.getElementById('no-waiting-msg');
+
+        let lastCalledQueue = null;
+
+        async function fetchQueueData() {
+            try {
+                const response = await fetch(apiUrl, { mode: 'cors' });
+                if (!response.ok) {
+                    throw new Error('Network response failed');
+                }
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    updateDisplay(result.data);
+                } else {
+                    console.error('Failed to fetch data:', result.message);
+                }
+            } catch (error) {
+                console.error('Error fetching queue data:', error);
+                nowCallingNumber.textContent = 'Error';
+            }
+        }
+
+        function updateDisplay(data) {
+            
+            if (data.nowCalling) {
+                if (data.nowCalling.QueueNumber !== lastCalledQueue) {
+                    nowCallingNumber.textContent = data.nowCalling.QueueNumber;
+                    nowCallingCard.classList.remove('pulse-animation');
+                    void nowCallingCard.offsetWidth; 
+                    nowCallingCard.classList.add('pulse-animation');
+                    lastCalledQueue = data.nowCalling.QueueNumber;
+                }
+            } else {
+                nowCallingNumber.textContent = '---';
+                lastCalledQueue = null;
+            }
+
+            
+            waitingList.innerHTML = ''; 
+            if (data.waitingList && data.waitingList.length > 0) {
+                noWaitingMsg.classList.add('hidden');
+                data.waitingList.slice(0, 10).forEach((q, index) => { 
+                    const item = document.createElement('div');
+                    item.className = 'waiting-queue-item text-4xl md:text-5xl font-bold p-4 rounded-2xl text-center shadow-lg slide-in-up';
+                    item.style.animationDelay = `${index * 100}ms`;
+                    item.textContent = q.QueueNumber;
+                    waitingList.appendChild(item);
+                });
+            } else {
+                waitingList.innerHTML = '<p id="no-waiting-msg" class="text-center text-gray-400 mt-10 text-2xl">ไม่มีคิวที่รออยู่</p>';
+            }
+        }
+
+        
+        fetchQueueData();
+        setInterval(fetchQueueData, 5000);
+    </script>
+</body>
+
+</html>
