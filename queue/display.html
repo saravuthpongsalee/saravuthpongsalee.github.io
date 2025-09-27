@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="th">
 
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>จอแสดงผลคิว</title>
-    <meta name="description" content="จอแสดงผลคิว for LIFF App" />
+    <title>รับบัตรคิว-ขนส่งศรีราชา</title>
+    <meta name="description" content="Queue for LIFF App" />
     <meta name="author" content="iton5" />
-    <meta property="og:title" content="จอแสดงผลคิว-iton5-thailand" />
-    <meta property="og:description" content="จอแสดงผลคิว for LIFF App" />
+    <meta property="og:title" content="Queue-iton5-thailand" />
+    <meta property="og:description" content="Queue for LIFF App" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lh3.googleusercontent.com/d/1Ck_OCfEW4dEp3A1k9yfQplYmW7qmwzFF" />
+    <meta property="og:image" content="https://lh3.googleusercontent.com/d/1ISNeCGzi9N0Ark6FJl2L6xgbe-qZujHv" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://bit.ly/fontiton5" type="text/css" charset="utf-8" />
     <style>
         :root {
@@ -27,38 +28,26 @@
 
         body {
             font-family: 'line_seed_sans_th';
-            background-color: var(--accent2);
-            color: var(--background);
+            background-color: var(--background);
+            color: var(--accent2);
         }
 
-        .gradient-text {
-            background: linear-gradient(45deg, var(--primary), var(--background));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .btn-main {
+            background-image: linear-gradient(to right, var(--secondary) 0%, var(--primary) 51%, var(--secondary) 100%);
+            transition: 0.5s;
+            background-size: 200% auto;
+            color: white;
+            box-shadow: 0 0 20px #eee;
         }
 
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(252, 170, 103, 0.7);
-            }
-
-            50% {
-                transform: scale(1.02);
-                box-shadow: 0 0 20px 20px rgba(252, 170, 103, 0);
-            }
+        .btn-main:hover {
+            background-position: right center;
         }
 
-        .pulse-animation {
-            animation: pulse 2.5s infinite;
-        }
-
-        @keyframes slideInUp {
+        @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(50px);
+                transform: translateY(20px);
             }
 
             to {
@@ -67,106 +56,375 @@
             }
         }
 
-        .slide-in-up {
-            animation: slideInUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
         }
 
-        .waiting-queue-item {
-            background-color: var(--accent1);
-            color: var(--background);
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid var(--secondary);
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse-green {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+            }
+
+            50% {
+                transform: scale(1.03);
+                box-shadow: 0 0 25px 20px rgba(34, 197, 94, 0);
+            }
+        }
+
+        .pulse-green-animation {
+            animation: pulse-green 2s infinite;
         }
     </style>
 </head>
 
-<body class="p-4 md:p-8">
+<body class="flex items-center justify-center min-h-screen">
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 h-screen max-h-screen">
+    <div id="loading-overlay"
+        class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="loader"></div>
+    </div>
+
+    <div class="w-full max-w-md mx-auto p-6 text-center">
 
        
-        <div
-            class="lg:col-span-2 bg-gradient-to-br from-[#473335] to-[#5a4244] rounded-3xl flex flex-col items-center justify-center p-8 shadow-2xl">
-            <h1 class="text-5xl md:text-7xl font-bold tracking-wider" style="color: var(--accent1);">กำลังเรียกคิว</h1>
-            <div id="now-calling-card" class="my-auto w-full text-center pulse-animation rounded-3xl p-4"
-                style="background-color: var(--background);">
-                <p id="now-calling-number" class="text-8xl md:text-9xl lg:text-[15rem] font-black leading-none"
-                    style="color: var(--secondary);">---</p>
+        <div id="initial-view">
+            <div class="mb-8">
+                <img class="w-24 h-24 mx-auto text-white bg-gradient-to-br from-orange-400 to-teal-600 rounded-full shadow-sm"
+                    src="https://lh3.googleusercontent.com/d/1ISNeCGzi9N0Ark6FJl2L6xgbe-qZujHv" alt="Logo">
+
+                <h1 id="service-title" class="text-4xl font-bold mt-4" style="color: var(--secondary);">iton5 Shop</h1>
+                <p id="user-greeting" class="mt-2" style="color: var(--accent1);">กดปุ่มด้านล่างเพื่อรับบัตรคิวของคุณ
+                </p>
             </div>
-            <p class="text-2xl text-gray-400">โปรดมาที่ช่องบริการ</p>
+
+            <button id="get-queue-btn"
+                class="btn-main w-full py-4 text-2xl font-bold rounded-xl shadow-lg transform hover:scale-105 duration-300">
+                รับบัตรคิว
+            </button>
         </div>
 
-       
-        <div class="bg-gray-800 rounded-3xl flex flex-col p-6 shadow-inner overflow-hidden">
-            <h2 class="text-4xl font-bold text-center mb-6 gradient-text">คิวรอถัดไป</h2>
-            <div id="waiting-list" class="flex-grow space-y-4 overflow-y-auto pr-2">
-               
-                <p id="no-waiting-msg" class="text-center text-gray-400 mt-10">ไม่มีคิวที่รออยู่</p>
+        
+        <div id="result-view" class="hidden">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 border-4 border-dashed"
+                style="border-color: var(--primary);">
+                <p class="text-2xl font-semibold" style="color: var(--accent1);">หมายเลขคิวของคุณคือ</p>
+                <h2 id="queue-number-display" class="text-7xl md:text-8xl font-black my-6 leading-none"
+                    style="color: var(--secondary);"></h2>
+                <p id="timestamp-display" class="text-base text-gray-500"></p>
+
+                <div class="mt-6 pt-6 border-t-2 border-dashed border-gray-300">
+                    <p class="text-xl font-medium" style="color: var(--accent1);">คิวที่เรียกล่าสุด</p>
+                    <p id="latest-called-queue" class="text-5xl font-bold mt-2" style="color: var(--accent2);">---</p>
+                </div>
+            </div>
+            <div class="mt-8 space-y-4">
+                <button id="cancel-queue-btn"
+                    class="w-full py-3 text-lg font-bold rounded-xl shadow-lg transition-transform duration-300 transform hover:scale-105 bg-red-500 text-white hover:bg-red-600">
+                    ยกเลิกคิว
+                </button>
+            </div>
+        </div>
+
+        
+        <div id="calling-view" class="hidden">
+            <div
+                class="bg-green-100 rounded-2xl shadow-2xl p-8 border-4 border-dashed border-green-500 text-center pulse-green-animation">
+                <p class="text-3xl font-bold" style="color: var(--accent1);">ถึงคิวของคุณแล้ว!</p>
+                <h2 id="calling-queue-number-display"
+                    class="text-8xl md:text-9xl font-black my-6 leading-none text-green-700"></h2>
+                <div class="mt-6 pt-6 border-t border-green-300">
+                    <p class="text-2xl font-bold" style="color: var(--accent2);">กรุณาไปที่ช่องบริการ</p>
+                </div>
+            </div>
+            <div class="mt-8">
+                <button onclick="window.open('https://i.pinimg.com/736x/11/68/06/116806dab1f43742c1d91ee90813fecd.jpg')"
+                    class="w-full py-3 px-6 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors">เลือกเมนูต่างๆ</button>
             </div>
         </div>
 
     </div>
 
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
         const apiUrl = 'https://script.google.com/macros/s/AKfycbxlpGzFlrYiIanmD8hosU7R8gosy-DnMgIoxzGCjNXriBs-Eh_qCzEqJ0Arj_vV5qc2xA/exec';
-        const nowCallingNumber = document.getElementById('now-calling-number');
-        const waitingList = document.getElementById('waiting-list');
-        const nowCallingCard = document.getElementById('now-calling-card');
-        const noWaitingMsg = document.getElementById('no-waiting-msg');
-
-        let lastCalledQueue = null;
-
-        async function fetchQueueData() {
-            try {
-                const response = await fetch(apiUrl, { mode: 'cors' });
-                if (!response.ok) {
-                    throw new Error('Network response failed');
-                }
-                const result = await response.json();
-
-                if (result.success && result.data) {
-                    updateDisplay(result.data);
-                } else {
-                    console.error('Failed to fetch data:', result.message);
-                }
-            } catch (error) {
-                console.error('Error fetching queue data:', error);
-                nowCallingNumber.textContent = 'Error';
-            }
-        }
-
-        function updateDisplay(data) {
-            
-            if (data.nowCalling) {
-                if (data.nowCalling.QueueNumber !== lastCalledQueue) {
-                    nowCallingNumber.textContent = data.nowCalling.QueueNumber;
-                    nowCallingCard.classList.remove('pulse-animation');
-                    void nowCallingCard.offsetWidth; 
-                    nowCallingCard.classList.add('pulse-animation');
-                    lastCalledQueue = data.nowCalling.QueueNumber;
-                }
-            } else {
-                nowCallingNumber.textContent = '---';
-                lastCalledQueue = null;
-            }
-
-            
-            waitingList.innerHTML = ''; 
-            if (data.waitingList && data.waitingList.length > 0) {
-                noWaitingMsg.classList.add('hidden');
-                data.waitingList.slice(0, 10).forEach((q, index) => { 
-                    const item = document.createElement('div');
-                    item.className = 'waiting-queue-item text-4xl md:text-5xl font-bold p-4 rounded-2xl text-center shadow-lg slide-in-up';
-                    item.style.animationDelay = `${index * 100}ms`;
-                    item.textContent = q.QueueNumber;
-                    waitingList.appendChild(item);
-                });
-            } else {
-                waitingList.innerHTML = '<p id="no-waiting-msg" class="text-center text-gray-400 mt-10 text-2xl">ไม่มีคิวที่รออยู่</p>';
-            }
-        }
+        const liffId = '2008184920-eBN0mGpo';
 
         
-        fetchQueueData();
-        setInterval(fetchQueueData, 5000);
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const getQueueBtn = document.getElementById('get-queue-btn');
+        const initialView = document.getElementById('initial-view');
+        const resultView = document.getElementById('result-view');
+        const callingView = document.getElementById('calling-view');
+        const queueNumberDisplay = document.getElementById('queue-number-display');
+        const timestampDisplay = document.getElementById('timestamp-display');
+        const callingQueueNumberDisplay = document.getElementById('calling-queue-number-display');
+        const userGreeting = document.getElementById('user-greeting');
+        const cancelQueueBtn = document.getElementById('cancel-queue-btn');
+        const latestCalledQueueEl = document.getElementById('latest-called-queue');
+        const serviceTitleEl = document.getElementById('service-title');
+
+        
+        let userProfile = null;
+        let queueCheckInterval = null;
+        let latestCalledInterval = null;
+        let serviceType = 'A'; 
+
+       
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        function stopAllIntervals() {
+            clearInterval(queueCheckInterval);
+            clearInterval(latestCalledInterval);
+            queueCheckInterval = null;
+            latestCalledInterval = null;
+        }
+
+        async function fetchLatestCalledQueue() {
+            try {
+                const response = await fetch(apiUrl, { method: 'GET', mode: 'cors' });
+                const result = await response.json();
+                if (result.success && result.data && result.data.nowCalling) {
+                    latestCalledQueueEl.textContent = result.data.nowCalling.QueueNumber;
+                } else {
+                    latestCalledQueueEl.textContent = '---';
+                }
+            } catch (error) {
+                console.error("Error fetching latest called queue:", error);
+                latestCalledQueueEl.textContent = 'Error';
+            }
+        }
+
+        function displayQueueState(queueData) {
+            stopAllIntervals();
+            const status = queueData.Status;
+            if (status === 'WAITING') {
+                queueNumberDisplay.textContent = queueData.QueueNumber;
+                const date = new Date(queueData.Timestamp);
+                timestampDisplay.textContent = `เวลาที่รับคิว: ${date.toLocaleTimeString('th-TH')} น.`;
+                initialView.classList.add('hidden');
+                callingView.classList.add('hidden');
+                resultView.classList.remove('hidden');
+                fetchLatestCalledQueue();
+                latestCalledInterval = setInterval(fetchLatestCalledQueue, 8000);
+                queueCheckInterval = setInterval(() => checkUserQueue(userProfile.userId), 5000);
+            } else if (status === 'CALLING') {
+                callingQueueNumberDisplay.textContent = queueData.QueueNumber;
+                initialView.classList.add('hidden');
+                resultView.classList.add('hidden');
+                callingView.classList.remove('hidden');
+            } else {
+                displayInitialState();
+            }
+        }
+
+        function displayInitialState() {
+            stopAllIntervals();
+            initialView.classList.remove('hidden');
+            resultView.classList.add('hidden');
+            callingView.classList.add('hidden');
+        }
+
+        async function checkUserQueue(userId) {
+            try {
+                const formData = new URLSearchParams();
+                formData.append('action', 'check_my_queue');
+                formData.append('userId', userId);
+                const response = await fetch(apiUrl, { method: 'POST', body: formData, mode: 'cors' });
+                const result = await response.json();
+                if (result.success && result.hasActiveQueue) {
+                    if (result.queue.Status !== 'WAITING') {
+                        displayQueueState(result.queue);
+                    }
+                } else {
+                    displayInitialState();
+                }
+            } catch (error) {
+                console.error('Error checking existing queue:', error);
+                stopAllIntervals();
+            }
+        }
+
+        async function initializeLiff() {
+            showLoading(true);
+            try {
+                
+                serviceType = getQueryParam('serviceType')?.toUpperCase() || 'A';
+                if (serviceType === 'B') {
+                    serviceTitleEl.textContent = 'คิวพิเศษ-ขนส่งศรีราชา';
+                } else {
+                    serviceTitleEl.textContent = 'คิวทั่วไป-ขนส่งศรีราชา';
+                }
+
+                await liff.init({ liffId: liffId, withLoginOnExternalBrowser: true });
+                if (!liff.isLoggedIn()) {
+                    liff.login({ redirectUri: window.location.href });
+                    return;
+                }
+                userProfile = await liff.getProfile();
+                userGreeting.textContent = `สวัสดีคุณ ${userProfile.displayName}`;
+
+                const formData = new URLSearchParams();
+                formData.append('action', 'check_my_queue');
+                formData.append('userId', userProfile.userId);
+                const response = await fetch(apiUrl, { method: 'POST', body: formData, mode: 'cors' });
+                const result = await response.json();
+                if (result.success && result.hasActiveQueue) {
+                    displayQueueState(result.queue);
+                } else {
+                    displayInitialState();
+                }
+            } catch (e) {
+                console.error('LIFF initialization failed', e);
+                userGreeting.textContent = "ไม่สามารถเชื่อมต่อกับ LINE ได้";
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        window.onload = initializeLiff;
+
+        function showLoading(show) {
+            loadingOverlay.classList.toggle('hidden', !show);
+        }
+
+       
+        getQueueBtn.addEventListener('click', async () => {
+            if (!userProfile || !userProfile.userId) {
+                alert('ยังไม่ได้รับข้อมูลผู้ใช้จาก LINE กรุณาลองใหม่อีกครั้ง');
+                return;
+            }
+            showLoading(true);
+            try {
+                const formData = new URLSearchParams();
+                formData.append('action', 'get_new_queue');
+                formData.append('serviceType', serviceType); 
+                formData.append('userId', userProfile.userId);
+                const response = await fetch(apiUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData, mode: 'cors'
+                });
+                const result = await response.json();
+                if (result.success) {
+                    displayQueueState({ QueueNumber: result.queueNumber, Timestamp: result.timestamp, Status: 'WAITING' });
+                } else {
+                    if (result.existingQueue) {
+                        alert(result.message);
+                        displayQueueState(result.existingQueue);
+                    } else {
+                        alert('เกิดข้อผิดพลาดในการรับคิว: ' + result.message);
+                    }
+                }
+            } catch (error) {
+                console.error('Error getting queue:', error);
+                alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        cancelQueueBtn.addEventListener('click', async () => {
+            if (!userProfile || !userProfile.userId) {
+                alert('ยังไม่ได้รับข้อมูลผู้ใช้จาก LINE');
+                return;
+            }
+            stopAllIntervals();
+            Swal.fire({
+                title: 'ยืนยันการยกเลิกคิว',
+                text: 'คุณต้องการยกเลิกคิวของคุณใช่หรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ใช่, ยกเลิกคิว',
+                cancelButtonText: 'ไม่, กลับสู่คิว',
+                reverseButtons: true
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    showLoading(true);
+                    try {
+                        const formData = new URLSearchParams();
+                        formData.append('action', 'cancel_my_queue');
+                        formData.append('userId', userProfile.userId);
+
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            body: formData,
+                            mode: 'cors'
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+
+                            const Toast = await Swal.mixin({
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
+                                didOpen: (toast) => {
+                                    toast.onmouseenter = Swal.stopTimer;
+                                    toast.onmouseleave = Swal.resumeTimer;
+                                }
+                            });
+                            Toast.fire({
+                                icon: "success",
+                                title: "ยกเลิกคิวของคุณเรียบร้อยแล้ว"
+                            });
+                            displayInitialState();
+                        } else {
+                            await Swal.fire({
+                                title: 'เกิดข้อผิดพลาด',
+                                text: result.message,
+                                icon: 'error',
+                                confirmButtonText: 'ตกลง'
+                            });
+                            await checkUserQueue(userProfile.userId);
+                        }
+                    } catch (error) {
+                        console.error('Error cancelling queue:', error);
+                        await Swal.fire({
+                            title: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+                            text: 'กรุณาลองใหม่ภายหลัง',
+                            icon: 'error',
+                            confirmButtonText: 'ตกลง'
+                        });
+                    } finally {
+                        showLoading(false);
+                    }
+                } else {
+
+                    queueCheckInterval = setInterval(() => checkUserQueue(userProfile.userId), 5000);
+                    latestCalledInterval = setInterval(fetchLatestCalledQueue, 8000);
+                }
+            });
+
+
+        });
+
     </script>
 </body>
 
